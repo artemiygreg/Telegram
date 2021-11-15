@@ -66,23 +66,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.Keep;
-import androidx.collection.LongSparseArray;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.core.graphics.ColorUtils;
-import androidx.core.view.NestedScrollingParent3;
-import androidx.core.view.NestedScrollingParentHelper;
-import androidx.core.view.ViewCompat;
-import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.PagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-
-import com.google.android.exoplayer2.util.Log;
-
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -148,6 +131,7 @@ import org.telegram.ui.Components.CombinedDrawable;
 import org.telegram.ui.Components.CrossfadeDrawable;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.FragmentContextView;
+import org.telegram.ui.Components.HintView;
 import org.telegram.ui.Components.IdenticonDrawable;
 import org.telegram.ui.Components.ImageUpdater;
 import org.telegram.ui.Components.LayoutHelper;
@@ -180,6 +164,21 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import androidx.annotation.Keep;
+import androidx.collection.LongSparseArray;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.core.graphics.ColorUtils;
+import androidx.core.view.NestedScrollingParent3;
+import androidx.core.view.NestedScrollingParentHelper;
+import androidx.core.view.ViewCompat;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 public class ProfileActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, SharedMediaLayout.SharedMediaPreloaderDelegate, ImageUpdater.ImageUpdaterDelegate, SharedMediaLayout.Delegate {
 
@@ -220,6 +219,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private AvatarDrawable avatarDrawable;
     private ImageUpdater imageUpdater;
     private int avatarColor;
+    private HintView noForwardMediaHint;
 
     private int overlayCountVisible;
 
@@ -1918,6 +1918,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             protected boolean onMemberClick(TLRPC.ChatParticipant participant, boolean isLong) {
                 return ProfileActivity.this.onMemberClick(participant, isLong);
             }
+
+            @Override
+            protected void onForwardRestricted(View view) {
+                if (noForwardMediaHint != null) {
+                    noForwardMediaHint.showForView(view, true);
+                }
+            }
         };
         sharedMediaLayout.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT));
 
@@ -1986,6 +1993,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
 
         createActionBarMenu(false);
+
+        noForwardMediaHint = new HintView(context, 4, getResourceProvider());
+        noForwardMediaHint.setShowingDuration(3000);
+        noForwardMediaHint.setAlpha(0.0f);
+        noForwardMediaHint.setVisibility(View.INVISIBLE);
+        noForwardMediaHint.setBottomOffset(-AndroidUtilities.dp(8));
+        noForwardMediaHint.setText(currentChat.broadcast ? LocaleController.getString("ForwardsRestrictedChannel", R.string.ForwardsRestrictedChannel) : LocaleController.getString("ForwardsRestrictedGroup", R.string.ForwardsRestrictedGroup));
 
         listAdapter = new ListAdapter(context);
         searchAdapter = new SearchAdapter(context);
@@ -3072,6 +3086,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         avatarContainer2.addView(avatarsViewPagerIndicatorView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
         frameLayout.addView(actionBar);
+        // added here so that the hint is displayed over actionbar
+        frameLayout.addView(noForwardMediaHint, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 8, 0, 8, 0));
 
         for (int a = 0; a < nameTextView.length; a++) {
             if (playProfileAnimation == 0 && a == 0) {
@@ -3190,6 +3206,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                noForwardMediaHint.hide();
                 checkListViewScroll();
                 if (participantsMap != null && !usersEndReached && layoutManager.findLastVisibleItemPosition() > membersEndRow - 8) {
                     getChannelParticipants(false);

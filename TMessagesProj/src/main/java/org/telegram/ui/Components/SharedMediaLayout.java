@@ -1,8 +1,5 @@
 package org.telegram.ui.Components;
 
-import static org.telegram.messenger.MediaDataController.MEDIA_PHOTOVIDEO;
-import static org.telegram.messenger.MediaDataController.getMediaType;
-
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
@@ -48,15 +45,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.google.android.exoplayer2.util.Log;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -115,6 +103,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import static org.telegram.messenger.MediaDataController.MEDIA_PHOTOVIDEO;
 
 @SuppressWarnings("unchecked")
 public class SharedMediaLayout extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
@@ -1432,6 +1429,10 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             actionModeLayout.addView(forwardItem, new LinearLayout.LayoutParams(AndroidUtilities.dp(54), ViewGroup.LayoutParams.MATCH_PARENT));
             actionModeViews.add(forwardItem);
             forwardItem.setOnClickListener(v -> onActionBarItemClick(forward));
+
+            if (isNoForwards()) {
+                forwardItem.setAlpha(0.5f);
+            }
         }
         deleteItem = new ActionBarMenuItem(context, null, Theme.getColor(Theme.key_actionBarActionModeDefaultSelector), Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2), false);
         deleteItem.setIcon(R.drawable.msg_delete);
@@ -2845,6 +2846,10 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         return false;
     }
 
+    protected void onForwardRestricted(View view) {
+
+    }
+
     public void onDestroy() {
         profileActivity.getNotificationCenter().removeObserver(this, NotificationCenter.mediaDidLoad);
         profileActivity.getNotificationCenter().removeObserver(this, NotificationCenter.didReceiveNewMessages);
@@ -3012,6 +3017,15 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         checkCurrentTabValid();
     }
 
+    public boolean isNoForwards() {
+        if (DialogObject.isUserDialog(dialog_id)) {
+            return false;
+        } else {
+            TLRPC.Chat currentChat = profileActivity.getMessagesController().getChat(-dialog_id);
+            return currentChat != null && currentChat.noforwards;
+        }
+    }
+
     public void onActionBarItemClick(int id) {
         if (id == delete) {
             TLRPC.Chat currentChat = null;
@@ -3030,6 +3044,11 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                 cantDeleteMessagesCount = 0;
             }, null);
         } else if (id == forward) {
+            if (isNoForwards()) {
+                onForwardRestricted(forwardItem);
+                return;
+            }
+
             Bundle args = new Bundle();
             args.putBoolean("onlySelect", true);
             args.putInt("dialogsType", 3);
@@ -4501,6 +4520,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             if (selectedMode == 0) {
                 int i = index - sharedMediaData[selectedMode].startOffset;
                 if (i >= 0 && i < sharedMediaData[selectedMode].messages.size()) {
+                    PhotoViewer.getInstance().setNoForwards(isNoForwards());
                     PhotoViewer.getInstance().setParentActivity(profileActivity.getParentActivity());
                     PhotoViewer.getInstance().openPhoto(sharedMediaData[selectedMode].messages, i, dialog_id, mergeDialogId, provider);
                 }
@@ -4509,6 +4529,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                     ((SharedAudioCell) view).didPressedButton();
                 }
             } else if (selectedMode == 5) {
+                PhotoViewer.getInstance().setNoForwards(isNoForwards());
                 PhotoViewer.getInstance().setParentActivity(profileActivity.getParentActivity());
                 index = sharedMediaData[selectedMode].messages.indexOf(message);
                 if (index < 0) {
@@ -4524,6 +4545,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                     TLRPC.Document document = message.getDocument();
                     if (cell.isLoaded()) {
                         if (message.canPreviewDocument()) {
+                            PhotoViewer.getInstance().setNoForwards(isNoForwards());
                             PhotoViewer.getInstance().setParentActivity(profileActivity.getParentActivity());
                             index = sharedMediaData[selectedMode].messages.indexOf(message);
                             if (index < 0) {

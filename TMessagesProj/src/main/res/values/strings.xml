@@ -374,6 +374,8 @@
     <string name="ChannelUsernamePlaceholder">link</string>
     <string name="ChannelPrivateLinkHelp">People can join your channel by following this link. You can revoke the link any time.</string>
     <string name="MegaPrivateLinkHelp">People can join your group by following this link. You can revoke the link any time.</string>
+    <string name="ChannelRestrictSavingContentHelp">Participants wont\'be able to messages from this channel or save media files</string>
+    <string name="GroupRestrictSavingContentHelp">Participants wont\'be able to messages from this group or save media files</string>
     <string name="DescriptionOptionalPlaceholder">Description (optional)</string>
     <string name="DescriptionPlaceholder">Description</string>
     <string name="DescriptionInfo">You can provide an optional description for your channel.</string>
@@ -586,8 +588,10 @@
     <string name="ChannelType">Channel Type</string>
     <string name="GroupTypeHeader">Group type</string>
     <string name="ChannelTypeHeader">Channel type</string>
+    <string name="SavingContent">Saving content</string>
     <string name="GroupSettingsTitle">Group Settings</string>
     <string name="ChannelSettingsTitle">Channel Settings</string>
+    <string name="TypeRestrictSavingContent">Restrict saving content</string>
     <string name="TypePrivate">Private</string>
     <string name="TypePublic">Public</string>
     <string name="TypePrivateGroup">Private</string>
@@ -826,6 +830,8 @@
     <string name="EventLogVoiceChatUnmuted">un1 unmuted un2</string>
     <string name="EventLogVoiceChatAllowedToSpeak">un1 allowed new participants to speak</string>
     <string name="EventLogVoiceChatNotAllowedToSpeak">un1 muted new participants</string>
+    <string name="EventLogToggleSavingContentOn">un1 enabled restriction saving content</string>
+    <string name="EventLogToggleSavingContentOff">un1 disabled restriction saving content</string>
     <!--broadcasts-->
     <string name="NewBroadcastList">New Broadcast List</string>
     <string name="EnterListName">Enter list name</string>
@@ -4809,4 +4815,6 @@
     <string name="UserAcceptedToGroupAction">un1 was accepted into the group</string>
     <string name="UserAcceptedToGroupPush">%1$s was accepted into the group</string>
     <string name="UserAcceptedToGroupPushWithGroup">%2$s|%1$s was accepted into the group</string>
+    <string name="ForwardsRestrictedGroup">Forwards from this group are restricted</string>
+    <string name="ForwardsRestrictedChannel">Forwards from this channel are restricted</string>
 </resources>

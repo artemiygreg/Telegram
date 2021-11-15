@@ -66,10 +66,6 @@ import android.view.accessibility.AccessibilityNodeProvider;
 import android.view.animation.Interpolator;
 import android.widget.Toast;
 
-import androidx.core.graphics.ColorUtils;
-
-import com.google.android.exoplayer2.util.Log;
-
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
@@ -145,6 +141,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
+
+import androidx.core.graphics.ColorUtils;
 
 public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate, ImageReceiver.ImageReceiverDelegate, DownloadController.FileDownloadProgressListener, TextSelectionHelper.SelectableView {
 
@@ -2187,7 +2185,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         result = true;
                     } else if (drawSideButton != 0 && x >= sideStartX && x <= sideStartX + AndroidUtilities.dp(40) && y >= sideStartY && y <= sideStartY + AndroidUtilities.dp(32 + (drawSideButton == 3 && commentLayout != null ? 18 : 0))) {
                         if (currentMessageObject.isSent()) {
-                            sideButtonPressed = true;
+                            sideButtonPressed = currentChat == null || !currentChat.noforwards;
                         }
                         result = true;
                         invalidate();
@@ -9607,7 +9605,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 return false;
             }
         }
-        return messageObject.needDrawShareButton();
+
+        if (messageObject.needDrawShareButton()) {
+            return currentChat == null || !currentChat.noforwards;
+        }
+
+        return false;
     }
 
     public boolean isInsideBackground(float x, float y) {
@@ -10381,9 +10384,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             } else {
                 rect.set(sideStartX, sideStartY, sideStartX + AndroidUtilities.dp(32), sideStartY + AndroidUtilities.dp(32));
                 applyServiceShaderMatrix(getMeasuredWidth(), backgroundHeight, getX(), viewTop);
-                canvas.drawRoundRect(rect, AndroidUtilities.dp(16), AndroidUtilities.dp(16), getThemedPaint(sideButtonPressed ? Theme.key_paint_chatActionBackgroundSelected : Theme.key_paint_chatActionBackground));
-                if (hasGradientService()) {
-                    canvas.drawRoundRect(rect, AndroidUtilities.dp(16), AndroidUtilities.dp(16), Theme.chat_actionBackgroundGradientDarkenPaint);
+
+                boolean drawShareButton = currentChat == null || !currentChat.noforwards;
+                if (drawShareButton) {
+                    canvas.drawRoundRect(rect, AndroidUtilities.dp(16), AndroidUtilities.dp(16), getThemedPaint(sideButtonPressed ? Theme.key_paint_chatActionBackgroundSelected : Theme.key_paint_chatActionBackground));
+                    if (hasGradientService()) {
+                        canvas.drawRoundRect(rect, AndroidUtilities.dp(16), AndroidUtilities.dp(16), Theme.chat_actionBackgroundGradientDarkenPaint);
+                    }
                 }
 
                 if (drawSideButton == 2) {
@@ -10400,9 +10407,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         canvas.restore();
                     }
                 } else {
-                    Drawable drawable = getThemedDrawable(Theme.key_drawable_shareIcon);
-                    setDrawableBounds(drawable, sideStartX + AndroidUtilities.dp(8), sideStartY + AndroidUtilities.dp(9));
-                    drawable.draw(canvas);
+                    if (drawShareButton) {
+                        Drawable drawable = getThemedDrawable(Theme.key_drawable_shareIcon);
+                        setDrawableBounds(drawable, sideStartX + AndroidUtilities.dp(8), sideStartY + AndroidUtilities.dp(9));
+                        drawable.draw(canvas);
+                    }
                 }
             }
         }
