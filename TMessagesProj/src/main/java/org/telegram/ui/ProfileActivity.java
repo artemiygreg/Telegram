@@ -1994,12 +1994,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
         createActionBarMenu(false);
 
-        noForwardMediaHint = new HintView(context, 4, getResourceProvider());
-        noForwardMediaHint.setShowingDuration(3000);
-        noForwardMediaHint.setAlpha(0.0f);
-        noForwardMediaHint.setVisibility(View.INVISIBLE);
-        noForwardMediaHint.setBottomOffset(-AndroidUtilities.dp(8));
-        noForwardMediaHint.setText(currentChat.broadcast ? LocaleController.getString("ForwardsRestrictedChannel", R.string.ForwardsRestrictedChannel) : LocaleController.getString("ForwardsRestrictedGroup", R.string.ForwardsRestrictedGroup));
+        if (currentChat != null) {
+            noForwardMediaHint = new HintView(context, 4, getResourceProvider());
+            noForwardMediaHint.setShowingDuration(3000);
+            noForwardMediaHint.setAlpha(0.0f);
+            noForwardMediaHint.setVisibility(View.INVISIBLE);
+            noForwardMediaHint.setBottomOffset(-AndroidUtilities.dp(8));
+            noForwardMediaHint.setText(currentChat.broadcast ? LocaleController.getString("ForwardsRestrictedChannel", R.string.ForwardsRestrictedChannel) : LocaleController.getString("ForwardsRestrictedGroup", R.string.ForwardsRestrictedGroup));
+        }
 
         listAdapter = new ListAdapter(context);
         searchAdapter = new SearchAdapter(context);
@@ -3087,7 +3089,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
         frameLayout.addView(actionBar);
         // added here so that the hint is displayed over actionbar
-        frameLayout.addView(noForwardMediaHint, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 8, 0, 8, 0));
+        if (noForwardMediaHint != null) {
+            frameLayout.addView(noForwardMediaHint, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 8, 0, 8, 0));
+        }
 
         for (int a = 0; a < nameTextView.length; a++) {
             if (playProfileAnimation == 0 && a == 0) {
@@ -3191,6 +3195,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                if (noForwardMediaHint != null) {
+                    noForwardMediaHint.hide();
+                }
                 if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
                     AndroidUtilities.hideKeyboard(getParentActivity().getCurrentFocus());
                 }
@@ -3206,7 +3213,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                noForwardMediaHint.hide();
                 checkListViewScroll();
                 if (participantsMap != null && !usersEndReached && layoutManager.findLastVisibleItemPosition() > membersEndRow - 8) {
                     getChannelParticipants(false);
