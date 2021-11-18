@@ -1113,6 +1113,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         profileActivity.getNotificationCenter().addObserver(this, NotificationCenter.messagePlayingDidReset);
         profileActivity.getNotificationCenter().addObserver(this, NotificationCenter.messagePlayingPlayStateChanged);
         profileActivity.getNotificationCenter().addObserver(this, NotificationCenter.messagePlayingDidStart);
+        profileActivity.getNotificationCenter().addObserver(this, NotificationCenter.savingRestrictionChanged);
 
         for (int a = 0; a < 10; a++) {
             //cellCache.add(new SharedPhotoVideoCell(context));
@@ -1430,9 +1431,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             actionModeViews.add(forwardItem);
             forwardItem.setOnClickListener(v -> onActionBarItemClick(forward));
 
-            if (isNoForwards()) {
-                forwardItem.setAlpha(0.5f);
-            }
+            forwardItem.setAlpha(isNoForwards() ? 0.5f : 1f);
         }
         deleteItem = new ActionBarMenuItem(context, null, Theme.getColor(Theme.key_actionBarActionModeDefaultSelector), Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2), false);
         deleteItem.setIcon(R.drawable.msg_delete);
@@ -2858,6 +2857,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         profileActivity.getNotificationCenter().removeObserver(this, NotificationCenter.messagePlayingDidReset);
         profileActivity.getNotificationCenter().removeObserver(this, NotificationCenter.messagePlayingPlayStateChanged);
         profileActivity.getNotificationCenter().removeObserver(this, NotificationCenter.messagePlayingDidStart);
+        profileActivity.getNotificationCenter().removeObserver(this, NotificationCenter.savingRestrictionChanged);
     }
 
     private void checkCurrentTabValid() {
@@ -3472,6 +3472,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             actionModeAnimation.cancel();
         }
         if (show) {
+            if (forwardItem != null) {
+                forwardItem.setAlpha(isNoForwards() ? 0.5f : 1f);
+            }
             actionModeLayout.setVisibility(VISIBLE);
         }
         actionModeAnimation = new AnimatorSet();
@@ -3818,6 +3821,11 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                         }
                     }
                 }
+            }
+        } else if (id == NotificationCenter.savingRestrictionChanged) {
+            Boolean newValue = args.length > 0 ? (Boolean)args[0] : null;
+            if (forwardItem != null) {
+                forwardItem.setAlpha(newValue != null && newValue ? 0.5f : 1f);
             }
         }
     }

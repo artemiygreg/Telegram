@@ -1488,6 +1488,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.invalidateMotionBackground);
         getNotificationCenter().addObserver(this, NotificationCenter.didUpdateConnectionState);
         getNotificationCenter().addObserver(this, NotificationCenter.updateInterfaces);
+        getNotificationCenter().addObserver(this, NotificationCenter.savingRestrictionChanged);
         if (chatMode != MODE_PINNED) {
             getNotificationCenter().addObserver(this, NotificationCenter.didReceiveNewMessages);
         }
@@ -1818,6 +1819,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getNotificationCenter().removeObserver(this, NotificationCenter.diceStickersDidLoad);
         getNotificationCenter().removeObserver(this, NotificationCenter.dialogDeleted);
         getNotificationCenter().removeObserver(this, NotificationCenter.didLoadSponsoredMessages);
+        getNotificationCenter().removeObserver(this, NotificationCenter.savingRestrictionChanged);
         if (currentEncryptedChat != null) {
             getNotificationCenter().removeObserver(this, NotificationCenter.didVerifyMessagesStickers);
         }
@@ -1829,7 +1831,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (currentUser != null) {
             MediaController.getInstance().stopMediaObserver();
         }
-        if (currentEncryptedChat != null) {
+        if (currentEncryptedChat != null || ChatObject.isChannel(currentChat)) {
             try {
                 if (Build.VERSION.SDK_INT >= 23 && (SharedConfig.passcodeHash.length() == 0 || SharedConfig.allowScreenCapture)) {
                     AndroidUtilities.setFlagSecure(this, false);
@@ -15737,6 +15739,15 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     themeDelegate.setCurrentTheme(themeDelegate.chatTheme, true, theme.isDark());
                 }
             }
+        } else if (id == NotificationCenter.savingRestrictionChanged) {
+            Boolean newValue = args.length > 0 ? (Boolean)args[0] : null;
+            try {
+                if (Build.VERSION.SDK_INT >= 23 && (SharedConfig.passcodeHash.length() == 0 || SharedConfig.allowScreenCapture)) {
+                    AndroidUtilities.setFlagSecure(this, newValue);
+                }
+            } catch (Throwable e) {
+                FileLog.e(e);
+            }
         }
     }
 
@@ -20223,8 +20234,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 cell.setLayoutParams(layoutParams);
 
                 FrameLayout cellContainer = new FrameLayout(getParentActivity());
+                Drawable shadowDrawable2 = ContextCompat.getDrawable(contentView.getContext(), R.drawable.popup_fixed_alert).mutate();
+                shadowDrawable2.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground), PorterDuff.Mode.MULTIPLY));
                 cellContainer.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(16), AndroidUtilities.dp(12), AndroidUtilities.dp(16));
-                cellContainer.setBackground(getParentActivity().getResources().getDrawable(R.drawable.popup_fixed_alert));
+                cellContainer.setBackground(shadowDrawable2);
 
                 LinearLayout.LayoutParams params = LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT);
                 params.topMargin = -AndroidUtilities.dp(4);

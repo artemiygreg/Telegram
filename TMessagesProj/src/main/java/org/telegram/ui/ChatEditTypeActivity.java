@@ -388,6 +388,7 @@ public class ChatEditTypeActivity extends BaseFragment implements NotificationCe
                 if (response != null && getParentActivity() != null) {
                     noForwards = !noForwards;
                     ((TextCheckCell) v).setChecked(noForwards);
+                    getNotificationCenter().postNotificationName(NotificationCenter.savingRestrictionChanged, noForwards);
                 }
 
                 // TODO: show error

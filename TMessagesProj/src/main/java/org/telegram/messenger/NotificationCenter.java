@@ -8,14 +8,14 @@
 
 package org.telegram.messenger;
 
-import androidx.annotation.UiThread;
-
 import android.os.SystemClock;
 import android.util.SparseArray;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+
+import androidx.annotation.UiThread;
 
 public class NotificationCenter {
 
@@ -118,6 +118,7 @@ public class NotificationCenter {
     public static final int stickersImportProgressChanged = totalEvents++;
     public static final int stickersImportComplete = totalEvents++;
     public static final int dialogDeleted = totalEvents++;
+    public static final int savingRestrictionChanged = totalEvents++;
 
     public static final int walletPendingTransactionsChanged = totalEvents++;
     public static final int walletSyncProgressChanged = totalEvents++;
